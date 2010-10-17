@@ -105,11 +105,11 @@
 			
 				if( cenario.checkTile(pX + spaceX,  pY )){
 					if((pX > 400 && pX < 1210) && cenario.checkPosX(newMouse[0] + moveX) ) newX = moveX;
-					player.xPos += moveX
+					player.x += moveX
 				}
 				if( cenario.checkTile(pX,  pY + spaceY) ){
 					if((pY > 290 && pY < 695) && cenario.checkPosY(newMouse[1] + moveY) ) newY = moveY;
-					player.yPos += moveY;
+					player.y += moveY;
 				}
 			}
 			
@@ -154,7 +154,7 @@
 		
 		checkKeys = function() {
 			var velocity = (keyOn[16]) ? 8 + 20 : 8; // shift
-			var space = 16;
+			var space = 8 + velocity;
 			moveX = 0, moveY = 0, spaceX = 0, spaceY = 0;
 			
 			if (keyOn[39] || keyOn[68]) { moveX = velocity; spaceX = space} //right arrow, d key

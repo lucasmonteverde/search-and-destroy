@@ -45,25 +45,25 @@ var Cenario = function(){
 		self.onFinish();
 	};
 	
-	this.onFinish = function() {};
+	this.onFinish = function() {},
 	
 	this.drawSelf = function(newX,newY){
 		//canvas.save();
 		canvas.translate(-newX,-newY);
 		canvas.drawImage(mapPng,0,0);
 		//canvas.restore();
-	};
+	},
 	
 	this.drawTile = function(m, x, y){
 		var mx = parseInt(m % tilesetWidth);
 		var my = parseInt(m / tilesetHeight);
 		canvasMap.drawImage(tileset, mx * tS, my * tS, tS, tS,x,y,tS,tS);
-	};
+	},
 	
 	this.checkTile = function(x, y){
 		try{
 			var local = self.getPosTile(x, y);
-			if(local == 0 || local == 1) //local == 55 || local == 7 || local == 8 || local == 9
+			if(local == 1) //local == 55 || local == 7 || local == 8 || local == 9
 				return true;
 			else
 				return false;
@@ -71,28 +71,32 @@ var Cenario = function(){
 			log("Check Tile Fail",e);
 		}
 		return false;
-	};
+	},
 
 	/** Retorna o tile correspondete da posição x e y; **/
 	this.getPosTile = function(x, y){
 		return mapa[ parseInt(y / tS,10)][parseInt(x / tS,10)];
-	};
+	},
 	
 	/** Verifica se a posição do jogador X está dentro do limite horizontal interno do mapa **/
 	this.checkPosX = function(px){
 		return (px > -5 && px < limitRight)?true:false;
-	};
+	},
 
 	/** Verifica se a posição do jogador Y está dentro do limite vertical interno do mapa  **/
 	this.checkPosY = function(py){
 		return (py > -5 && py < limitDown)?true:false;
-	};
+	},
 	
 	this.getInimigosCount = function(){
 		return inimigos.length;
-	};
+	},
 	
 	this.getInimigoLocation = function(i){
 		return new Array( inimigos[i].x, inimigos[i].y );
+	},
+	
+	this.getMapa = function(){
+		return mapa;
 	}
 };

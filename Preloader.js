@@ -6,9 +6,7 @@
  */
 Preloader = function(imageDictionary, audioDictionary){
 
-	var totalToLoad = (imageDictionary || imageDictionary.length) + (audioDictionary || audioDictionary.length);
-	var leftToLoad = 0;
-	var resources = {};
+	var totalToLoad = 0, leftToLoad = 0,resources = {};
 	
 	//window.addEventListener('load', somethingLoaded, false);
 	var self = this;
@@ -16,6 +14,7 @@ Preloader = function(imageDictionary, audioDictionary){
 	this.load = function(){
 		if (typeof Audio != 'undefined' && audioDictionary){
 			for (a in audioDictionary){
+				totalToLoad++;
 				resources[a] = new Audio();
 				resources[a].addEventListener('canplaythrough', somethingLoaded, false);
 				resources[a].autobuffer = true;
@@ -26,6 +25,7 @@ Preloader = function(imageDictionary, audioDictionary){
 		
 		if (imageDictionary){
 			for (i in imageDictionary){
+				totalToLoad++;
 				resources[i] = new Image();
 				resources[i].addEventListener('load', somethingLoaded, false);
 				resources[i].src = imageDictionary[i];
