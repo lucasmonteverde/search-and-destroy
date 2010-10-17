@@ -12,14 +12,14 @@
 
 	log = function() {
 		if (window.console && window.console.log) window.console.log( Array.prototype.slice.call(arguments)) ;
-	},
+	};
 	
-	loadJson = function(json,callback){
+	loadJson = function(json,callback,obj){
 		try{
 			var xhr = new XMLHttpRequest;
 			xhr.open('GET', json);
 			xhr.onload = function() { 
-				callback(JSON.parse(xhr.responseText));
+				callback(JSON.parse(xhr.responseText),obj);
 			};
 			xhr.onerror = function() { log('request error', xhr);};
 			xhr.send();
@@ -57,11 +57,12 @@
 			cenario.onFinish = function(){ 
 				setInterval(updateScreen,33) 
 			
-				player = new Player("Begode", "Ally", 50,50 );
+				player = new Jogador("Begode", "Ally", [50,50] );
+				loadJson('json/armas.json',player.defineArmas,player);
 			
 				for(var i = 0; i < cenario.getInimigosCount(); i++)
 					inimigos.push( new Inimigo("Inimigo", "Rebels", cenario.getInimigoLocation(i)) );
-			
+					
 			};
 		};
 		
@@ -121,6 +122,7 @@
 			player.setRotate(newMouse[0] + mouseX - pX, newMouse[1] + mouseY - pY);
 
 			player.drawSelf();
+
 			if(mClick) player.atira(); 
 			
 			//Handle enemies
