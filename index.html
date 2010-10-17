@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title> Search And Destroy </title>
+	<link rel="shortcut icon" href="images/favicon.png" />
+	<script type="text/javascript" src="Preloader.js" ></script>
+	<script type="text/javascript" src="Cenario.js" ></script>
+	<script type="text/javascript" src="Objects.js" ></script>
+	<script type="text/javascript" src="AStar.js" ></script>
+	<script type="text/javascript" src="SD.js" ></script>
+	<style type="text/css"> 
+		html, body {background: #ccc; margin: 0;padding: 0;}
+		body{width:800px; height:600px; margin:auto;}
+		#fps{ position:absolute;top:3px;right:3px;font: 12px "Courier", "Monaco", Verdana, sans-serif;color:black;z-index:100;}
+		canvas{position:absolute; cursor:url(images/mira.png) 14 14, auto; border:1px solid #000}
+		#c{ }
+		#p {z-index:2}
+		#reset{position:absolute; top:3px; left:3px;}
+		#painel{position:absolute; top:50px; left:3px; /* width:800px; bottom:0;  */font:18px Helvetica;}
+		#painel span {display:block;}
+	</style>
+</head>
+<body>
+	<input type="button" value="reset" id="reset"></input>
+	<div id="fps"></div>
+	<canvas id="c" width="800" height="600"></canvas>
+	<!-- <canvas id="p" width="800" height="600"></canvas> -->
+	<!-- <canvas id="gui" width="800" height="600"></canvas> -->
+	<div id="painel">
+		<span id="hp"></span>
+		<span id="arma"></span>
+		<span id="balas"></span>
+	</div>
+</body>
+</html>
