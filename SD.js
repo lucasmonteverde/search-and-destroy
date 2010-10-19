@@ -34,19 +34,19 @@
 
 	SD = function(){
 		/** Globals **/
-		preloader = {},canvas= {},mapSize = [800,600];
+		preloader = {},mapSize = [800,600];
 		
 		var frames = 0, tempoInicial = 0,
-			mouseX = 0, mouseY = 0, newMouse = [0,0],
+			mouseX = 800, mouseY = 100, newMouse = [0,0],
 			moveX = 0, moveY = 0, spaceX = 0, spaceY = 0,
 			mClick = false, keyOn = [],
-			cenario, player, inimigos =[];
+			canvas, cenario, player, inimigos = [],inimigosL;
 			
 		var screenSize = (window.innerHeight - 600) /2;
 		d.body.style.marginTop = screenSize > 0? screenSize + "px":0;
 					
 		
-		var start = function(){
+		var init = function(){
 			log('Start');
 			
 			canvas = $("c").getContext("2d");
@@ -58,11 +58,11 @@
 				setInterval(updateScreen,33) 
 			
 				player = new Jogador("Begode", "Ally", [50,50] );
-				loadJson('json/armas.json',player.defineArmas,player);
 			
 				for(var i = 0; i < cenario.getInimigosCount(); i++)
-					inimigos.push( new Inimigo("Inimigo", "Rebels", cenario.getInimigoLocation(i)) );
+					inimigos.push( new Inimigo("Inimigo", "Rebels", cenario.getInimigoLocation(i), cenario,player) );
 					
+				inimigosL = inimigos.length;
 			};
 		};
 		
@@ -80,7 +80,7 @@
 			}
 		);
 
-		preloader.onFinish = start;
+		preloader.onFinish = init;
 		preloader.load();
 		
 		//var gui = $("gui").getContext("2d");
@@ -101,7 +101,7 @@
 			var newX = 0, newY = 0,
 				pX = player.getX(),
 				pY = player.getY();
-			 
+			// log(moveX,moveY);
 			if(moveX != 0 || moveY != 0){
 			
 				if( cenario.checkTile(pX + spaceX,  pY )){
@@ -113,23 +113,24 @@
 					player.y += moveY;
 				}
 			}
-			
+
 			newMouse[0] += newX;
 			newMouse[1] += newY;
 			
-			cenario.drawSelf(newX,newY);
+			cenario.drawSelf(canvas,newX,newY);
 			
 			player.setRotate(newMouse[0] + mouseX - pX, newMouse[1] + mouseY - pY);
 
-			player.drawSelf();
+			
 
-			if(mClick) player.atira(); 
+			if(mClick) player.atira();
 			
 			//Handle enemies
-			for(var i = 0; i < inimigos.length; i++){
-				inimigos[i].drawSelf();
-				//enemies.splice(i,1); i--;//Don't fear the reaper. }
+			for(var i = 0; i < inimigosL; i++){
+				inimigos[i].drawSelf(canvas);
+				inimigos[i].UpdateState();
 			}
+			player.drawSelf(canvas);
 		},
 
 		updateScreen = function(){
@@ -188,12 +189,16 @@
 			}
 			return canvas;
 		};
-		
+		/*
+		canvas.addEventListener('touchstart', function(e){mouseX = e.touches[0].pageX, mouseY = e.touches[0].pageY; mClick = true;}, false);
+		canvas.addEventListener('touchmove', function(e){mouseX = e.touches[0].pageX, mouseY = e.touches[0].pageY;}, false);
+		canvas.addEventListener('touchend', function(){mClick = false;}, false);*/
 		d.onmousemove = function(e){mouseX = e.offsetX||e.layerX;mouseY = e.offsetY||e.layerY;};
+ 
 		d.onmousedown = function() { mClick = true;};
 		d.onmouseup = function() { mClick = false;};
 		d.onselectstart = function() { return false; };
-		d.onkeydown = function(e){ keyOn[ (e||window.event).keyCode ] = true; if(keyOn[32] == true) { e.preventDefault(); player.recarregar() }};
+		d.onkeydown = function(e){keyOn[ (e||window.event).keyCode ] = true; if(keyOn[32] == true) { e.preventDefault?e.preventDefault():e.returnValue = false; player.recarregar() }};
 		d.onkeyup = function(e){ keyOn[ (e||window.event).keyCode ] = false;};
 		
 		$("reset").onmousedown = function(){ player.setLocationTo(50,50);};

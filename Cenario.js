@@ -10,11 +10,29 @@ var Cenario = function(){
 
 	var	self = this, tS, mapa, mapPng, limitRight, limitDown,inimigos;
 	
+	String.prototype.toInt = function(){
+		return parseInt(this);
+	}
+	
+	Array.prototype.Show = function(){
+		var result = "";
+		for(var i=0,l = this.length; i<l;i++){
+			for(var j=0,m =this[0].length; j<m;j++){
+				result += this[i][j] + " ";
+			}
+			result += "\n";
+		}
+		console.log(result);
+	}
+	
 	this.processMap = function(data){
 		mapa = data.matrix.split('\n\t\t');
 		for(var i=0,l = mapa.length; i< l;i++){
 			mapa[i] = mapa[i].split(' ');
-			if(!mapa[i][mapa[i].length - 1]) mapa[i].pop();
+			for(var j=0, m = mapa[0].length; j<m; j++){
+				mapa[i][j] = mapa[i][j].toInt();
+			}
+			if(i < l - 1) mapa[i].pop();
 		};
 		tS = data.tamanho.tile;
 		mapPng = preloader.getResource('mapa');
@@ -23,6 +41,7 @@ var Cenario = function(){
 		limitDown = (tS * mapa.length) - 600;
 		inimigos = data.inimigos;
 		
+		//mapa.Show();
 		/** Map Generator **/
 		/*
 		tileset = preloader.getResource('tileset');
@@ -47,11 +66,9 @@ var Cenario = function(){
 	
 	this.onFinish = function() {},
 	
-	this.drawSelf = function(newX,newY){
-		//canvas.save();
+	this.drawSelf = function(canvas,newX,newY){
 		canvas.translate(-newX,-newY);
 		canvas.drawImage(mapPng,0,0);
-		//canvas.restore();
 	},
 	
 	this.drawTile = function(m, x, y){
@@ -63,10 +80,8 @@ var Cenario = function(){
 	this.checkTile = function(x, y){
 		try{
 			var local = self.getPosTile(x, y);
-			if(local == 1) //local == 55 || local == 7 || local == 8 || local == 9
-				return true;
-			else
-				return false;
+			if(local == 0) return true;
+			else return false;
 		}catch (e){
 			log("Check Tile Fail",e);
 		}
@@ -98,5 +113,16 @@ var Cenario = function(){
 	
 	this.getMapa = function(){
 		return mapa;
-	}
+	},
+	this.GridGenerator = function(width, height){
+		var	floor = Math.floor,
+			random = Math.random,
+			result = new Array(height);
+		for(var	j, i = 0; i < height; i++) {
+			result[i] = new Array(width);
+			for(j = 0; j < width; j++)
+				result[i][j] = (j * i) % 7 ? floor(random() * 200) % 2 : 0;
+		};
+		return result;
+	};
 };
