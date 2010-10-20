@@ -31,7 +31,7 @@ StateType = {Patrulhar: 1, Combate: 2, Perseguir: 3, Atirar: 4, Fugir: 5, Morto:
 Bullet = function(){this.init.apply(this,arguments)},
 
 Personagem = Class.create({
-	vida:		500,
+	vida:		100,
 	morto:	 	false,
 	arma: 		0, //Arma Inicial
 	tiroInicial:0,
@@ -77,9 +77,20 @@ Personagem = Class.create({
 		if( (this.tiroInicial > (new Date().getTime() - 200))) f = 1;
 		else this.tiroInicial = f = 0;
 		
+		if(this.morto){
+			f = 2;
+		}
+		this.w = this.frame[f].width;
+		this.h = this.frame[f].height;
+		this.w2 = this.w/2;
+		this.h2 = this.h/2;
+			
+		this.canvasElem.width = this.w;
+		this.canvasElem.height = this.h;
+		
 		this.canvas.save();
 		
-		this.canvas.clearRect(0,0,this.w,this.h);
+		//this.canvas.clearRect(0,0,this.w,this.h);
 		this.canvas.translate(this.w2,this.h2);
 		this.canvas.rotate(this.rotate);
 		this.canvas.drawImage(this.frame[f], -this.w2, -this.h2,this.w,this.h);
@@ -88,12 +99,42 @@ Personagem = Class.create({
 		
 		this.canvas.restore();
 
+		/** /
 		for(var i = 0; i < this.bullets.length; i++){
 			var b = this.bullets[i];
 			if(b.getAlcance()) b.drawSelf(canvas);
 			else this.bullets.splice(i,1);
 		};
+		/**/
 		
+	},
+	hitTest:function(x, y){
+		var pX = this.x - 16,
+			pY = this.y - 16;
+		if(x > pX && x < pX + 32 && y > pY && y < pY + 32)
+			return true;
+		else
+			return false;
+	},
+
+	/*
+	 * Método é executado quando o personagem for atingido, recebe a força da bala,
+	 * descontando da sua vida;
+	 * 
+	 * Inicia o audio de dano tomado ou se personagem for morte, o audio de morte;
+	 */
+	hitBy:function(bala){
+		this.vida -= bala;
+		if(this.vida < 0) this.vida = 0;
+		
+		this.updatePanel();
+		if(this.vida > 1){
+			
+			//audioHit.start();
+		}else if(!this.morto){
+			//audioMorte.start();
+			this.morto = true;
+		}
 	},
 	atira: function(){
 		if(this.tiroInicial == 0 ){
@@ -123,6 +164,8 @@ Personagem = Class.create({
 	updatePanel: function(b){
 		if(this.type != "Ally") return;
 		var b = b || this.armas[this.arma];
+		//Make a HTML String;
+		this.vidaElem.innerHTML = "HP:" + this.vida;
 		this.armaElem.innerHTML = "Weapon: "+ b.nome;
 		this.balasElem.innerHTML = "Bullets: "+ b.balas;
 	},
@@ -180,7 +223,9 @@ Jogador = Personagem.extend({
 	//this.init(name,type,pos);
 	/**/ 
 	init: function(name, type, pos) { 
-		this._super(name, type, pos); 
+		this._super(name, type, pos),
+		this.vida = 500,
+		this.vidaElem = $("hp"),
 		this.armaElem = $("arma"),
 		this.balasElem = $("balas");
 	},
@@ -197,7 +242,7 @@ Inimigo = Personagem.extend({
 	//this.init(name,type,pos);
 	
 	init: function(name, type, pos, cenario,player) { 
-		this._super(name, type, pos); 
+		this._super(name, type, pos);
 		this.vel 			= 0; //distancia percorrida;
 		this.speed			= 2;
 		this.state 			= StateType.Patrulhar;
@@ -376,6 +421,8 @@ Inimigo = Personagem.extend({
 	
 	UpdateState: function(){
 		//log(this.state);
+		if(this.morto) this.ChangeState('Morto');
+			
 		switch(this.state){
 			/**/
 			case StateType.Patrulhar:
