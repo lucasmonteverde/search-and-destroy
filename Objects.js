@@ -24,14 +24,18 @@
 	};
 })();
  
-//var Personagem = function(){}
+var Point = function(x,y){
+	return [Math.floor(x/32) || 10, Math.floor(y/32) || 10]
+},
+StateType = {Patrulhar: 1, Combate: 2, Perseguir: 3, Atirar: 4, Fugir: 5, Morto: 0},
+Bullet = function(){this.init.apply(this,arguments)},
 
-var Personagem = Class.create({
-	vida:	500,
-	morto:	 false,
-	arma: 0, //Arma Inicial
-	tiroInicial: 0,
-	armas: [],
+Personagem = Class.create({
+	vida:		500,
+	morto:	 	false,
+	arma: 		0, //Arma Inicial
+	tiroInicial:0,
+	
 	
 	init:function(name,type,pos){
 		this.name = name,
@@ -44,6 +48,7 @@ var Personagem = Class.create({
 		this.canvasElem = makeCanvas(name,this.w,this.h),
 		this.canvas = this.canvasElem.getContext("2d"),
 		this.bullets = [];
+		this.armas = [],
 		
 		loadJson('json/armas.json',this.defineArmas,this);
 		
@@ -76,11 +81,11 @@ var Personagem = Class.create({
 		
 		this.canvas.clearRect(0,0,this.w,this.h);
 		this.canvas.translate(this.w2,this.h2);
-		//this.canvas.rotate((Math.random() * 6) -4 );
 		this.canvas.rotate(this.rotate);
 		this.canvas.drawImage(this.frame[f], -this.w2, -this.h2,this.w,this.h);
 		
-		canvas.drawImage(this.canvasElem, this.x - this.w2, this.y - this.h2); 
+		canvas.drawImage(this.canvasElem, this.x - this.w2, this.y - this.h2,this.w,this.h); 
+		
 		this.canvas.restore();
 
 		for(var i = 0; i < this.bullets.length; i++){
@@ -99,6 +104,16 @@ var Personagem = Class.create({
 			}else{
 				log("No Bulelts");
 				return false;
+			}
+		}
+	},
+	ChuvaDeMeteoros: function(){
+		if(this.tiroInicial == 0 ){
+			this.tiroInicial = new Date().getTime();
+			var b = this.armas[this.arma];
+			for(var i = 0; i<18;i++){
+				this.rotate += 0.35;
+				this.bullets.push( this.fire(b) );
 			}
 		}
 	},
@@ -127,8 +142,7 @@ var Personagem = Class.create({
 		for(var o in data){
 			data[o].img =  preloader.getResource( data[o].img );
 		}
-		//obj.__proto__.__proto__.armas = data; //tenso!
-		obj.__proto__.armas = data;
+		obj.armas = data;
 		obj.updatePanel();
 	},
 	setArmas:function(data){
@@ -162,8 +176,6 @@ var Personagem = Class.create({
 	}
 }),
 
-
-
 Jogador = Personagem.extend({
 	//this.init(name,type,pos);
 	/**/ 
@@ -181,12 +193,6 @@ Jogador = Personagem.extend({
 	
 });
 
-var Point = function(x,y){
-	return [Math.floor(x/32) || 10, Math.floor(y/32) || 10]
-},
-
-StateType = {Patrulhar: 1, Combate: 2, Perseguir: 3, Atirar: 4, Fugir: 5, Morto: 0},
-
 Inimigo = Personagem.extend({
 	//this.init(name,type,pos);
 	
@@ -198,7 +204,7 @@ Inimigo = Personagem.extend({
 		this.player 		= player;
 		this.cenario 		= cenario;
 		this.grid 			= cenario.getMapa();
-		this.CampoVisao 	= 350;
+		this.campoVisao 	= 350;
 		this.tempoInit 		= 0;
 		this.newRoute		= true;
 		this.newPerseguir	= true;
@@ -212,20 +218,27 @@ Inimigo = Personagem.extend({
 	},
 	
 	updateSelf: function(check){
-		//if(this.vel < this.distancia)
-		var preX = this.x + this.xSpeed,
-			preY = this.y + this.ySpeed,
+		var pX = this.x + this.xSpeed,
+			pY = this.y + this.ySpeed,
 			spaceX = parseInt(this.xSpeed>0?16:-16),
 			spaceY = parseInt(this.ySpeed>0?16:-16);
-			
-		if(check){
-			if(this.cenario.checkTile(preX + spaceX, preY + spaceY)){
-				this.setLocationTo(preX,preY);
+		if(this.vel < this.distancia){
+			if(check){
+				if(this.cenario.checkTile(pX + spaceX, pY)){
+					this.x = pX;
+					this.vel++;
+				}else this.vel = this.distancia;
+				if(this.cenario.checkTile(pX,  pY + spaceY)){
+					this.y = pY;
+					this.vel++;
+				}else this.vel = this.distancia;
+					
+				//this.vel += this.speed;
+				
+			}else{
+				this.setLocationTo(pX,pY);
 				this.vel += this.speed;
 			}
-		}else{
-			this.setLocationTo(preX,preY);
-			this.vel += this.speed;
 		}
 	},
 	
@@ -236,13 +249,17 @@ Inimigo = Personagem.extend({
 	
 	
 	novaRota: function(){
-		console.log("nova patrulha");
+		//console.log("nova patrulha");
 		this.delay = parseInt((Math.random() * 6000) + 1500);
 		
 		var newX = parseInt((Math.random() * 80) + this.x - 40),
 			newY = parseInt((Math.random() * 80) + this.y - 40);
 		
 		this.setDistancia(newX - this.x, newY - this.y);
+		
+		this.xSpeed = this.speed * Math.cos(this.rotate);
+		this.ySpeed = this.speed * Math.sin(this.rotate);
+		this.vel = 0;
 	},
 	
 	
@@ -251,16 +268,10 @@ Inimigo = Personagem.extend({
 
 		if(this.newRoute){
 			this.novaRota();
-			
-			this.xSpeed = this.speed * Math.cos(this.rotate);
-			this.ySpeed = this.speed * Math.sin(this.rotate);
-			
-			this.vel = 0;
 			this.newRoute = false;
 		}
 
 		if((this.tempoInit > (new Date().getTime() - this.delay))){
-
 			this.updateSelf(true);
 		} else{
 			this.tempoInit = 0;
@@ -277,22 +288,17 @@ Inimigo = Personagem.extend({
 			resY = this.y % 32;
 			
 			this.setDistancia((node[0] * 32 + resX) - this.x, (node[1] * 32 + resY) - this.y);
+			this.xSpeed = (this.speed * 2) * Math.cos(this.rotate);
+			this.ySpeed = (this.speed * 2) * Math.sin(this.rotate);
+			this.vel = 0;
 		}
 	},
 	
 	Perseguir: function(){
 		if(this.newPerseguir){
-			//console.log("new perseguir is true");
 			this.novaPerseguicao();
-			
-			this.xSpeed = (this.speed * 2) * Math.cos(this.rotate);
-			this.ySpeed = (this.speed * 2) * Math.sin(this.rotate);
-			
-			this.vel = 0;
 			this.newPerseguir = false;
 		}
-		
-		//console.log( this.vel, this.distancia);
 		
 		if(this.vel < this.distancia){
 			this.updateSelf();
@@ -312,14 +318,14 @@ Inimigo = Personagem.extend({
 			return false;
 		}
 
-		if(dist <= this.CampoVisao){
+		if(dist <= this.campoVisao){
 			if(campo)//localização somente por raio
 				if((virar < this.rotate + 0.8 && virar > this.rotate - 0.8) || dist < 100)//localização por angulo
-					return this.jogadorNaMira(virar);
+					return this.jogadorNaMira(virar,dist);
 				else
 					return false;
 			else
-				return this.jogadorNaMira(atual);
+				return this.jogadorNaMira(this.rotate);
 		} else
 			return false;
 
@@ -330,26 +336,40 @@ Inimigo = Personagem.extend({
 	 * Recebe o angulo em que rotaciona o inimigo de frente com o jogador
 	 * se a linha for formada sem ser interrompida por algum obstaculo;
 	 */
-	jogadorNaMira: function(virar){
-		var t = 0,lineX = 0,lineY=0;
-		while(t < 1){
-			lineX = parseInt(this.x + (this.player.x - this.x) * t);
-			lineY = parseInt(this.x + (this.player.y - this.x) * t);
-			t += 0.1;
-			//log(lineX,lineY);
+	jogadorNaMira: function(virar,dist){
+		var t = 0,lineX = this.x,lineY=this.y;
+		
+		var xSpeed = 28 * Math.cos(virar),
+			ySpeed = 28 * Math.sin(virar);
+		
+		for(var v =0; v<dist;v+=32){
+			lineX += xSpeed;
+			lineY += ySpeed;
 			if(!this.cenario.checkTile(lineX, lineY)) return false;
 		}
 		/* with(canvas){
-			save();
 			beginPath();
 			moveTo(this.x, this.y);
 			lineTo(lineX, lineY);
-			fill();
 			stroke();
+			closePath();
+		} */
+		
+		//var startAngle = this.rotate - 0.7, endAngle = this.rotate + 0.7;
+		//var inside = false;
+	
+		/* with(canvas){
+			save();
+			fillStyle = "rgba(200,0,0,.5)";
+			beginPath();
+			moveTo(this.x, this.y);
+			lineTo(this.campoVisao * Math.cos(startAngle) + this.x, this.campoVisao * Math.sin(startAngle) + this.y);
+			arc(this.x, this.y, this.campoVisao, startAngle, endAngle, false);
+			inside = isPointInPath(this.player.x,this.player.y);
+			fill();
 			closePath();
 			restore();
 		} */
-		
 		this.rotate = virar;
 		return true;
 	},
@@ -421,34 +441,38 @@ Inimigo = Personagem.extend({
 	}
 });
 
-var Bullet = function(x,y,r,speed,damage,image){
-	this.forcaImpacto = damage;
-	this.bullet = image;
+Bullet.prototype = {
+	dist: 0,
 	
-	this.xSpeed = speed * Math.cos(r);
-	this.ySpeed = speed * Math.sin(r);
-	
-	//previne que a municao sai de cima do personagem;
-	this.x = x + this.xSpeed * 4;
-	this.y = y + this.ySpeed * 4;
-	this.v = 0;
-	this.w = this.bullet.width/2;
-	this.h = this.bullet.height/2;
+	init: function(x,y,r,speed,damage,image){
+		this.forcaImpacto = damage;
+		this.bullet = image;
+		this.w = this.bullet.width/2;
+		this.h = this.bullet.height/2;
+		
+		this.xSpeed = speed * Math.cos(r);
+		this.ySpeed = speed * Math.sin(r);
+		
+		//previne que a municao sai de cima do personagem;
+		this.x = x + this.xSpeed * 4;
+		this.y = y + this.ySpeed * 4;
+	},
 
-	this.updateSelf = function(){
+	updateSelf: function(){
 		this.x += this.xSpeed;
 		this.y += this.ySpeed;
-		this.v++;
-	};
-	this.drawSelf = function(canvas){
+		this.dist++;
+	},
+	
+	drawSelf: function(canvas){
 		this.updateSelf();
 		canvas.save();
 		canvas.drawImage(this.bullet, this.x - this.w, this.y - this.h);
 		canvas.restore();
-	};
+	},
 	
-	this.getAlcance = function(){
-		if(this.v > 60) return false;
+	getAlcance: function(){
+		if(this.dist > 60) return false;
 		else return true;
 	}
 };

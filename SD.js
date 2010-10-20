@@ -30,17 +30,16 @@
 	
 	$ = function(id){
 		return d.getElementById(id);
-	},
+	};
 
-	SD = function(){
-		/** Globals **/
-		preloader = {},mapSize = [800,600];
+	var SD = function(){
+		preloader = {}, canvas ={};
 		
-		var frames = 0, tempoInicial = 0,
+		var frames = 0, tempoInicial = 0, interval, paused = false,
 			mouseX = 800, mouseY = 100, newMouse = [0,0],
 			moveX = 0, moveY = 0, spaceX = 0, spaceY = 0,
 			mClick = false, keyOn = [],
-			canvas, cenario, player, inimigos = [],inimigosL;
+			cenario, player, inimigos = [],inimigosL,mapSize = [];
 			
 		var screenSize = (window.innerHeight - 600) /2;
 		d.body.style.marginTop = screenSize > 0? screenSize + "px":0;
@@ -53,14 +52,16 @@
 			fpsCounter = $("fps");
 			
 			cenario = new Cenario();
-			loadJson('json/mapa.json',cenario.processMap,true);
-			cenario.onFinish = function(){ 
-				setInterval(updateScreen,33) 
+			loadJson('json/mapa.json',cenario.processMap);
+			
+			cenario.onFinish = function(){
+				mapSize = this.getMapSize();
+				interval = setInterval(updateScreen,33) 
 			
 				player = new Jogador("Begode", "Ally", [50,50] );
 			
 				for(var i = 0; i < cenario.getInimigosCount(); i++)
-					inimigos.push( new Inimigo("Inimigo", "Rebels", cenario.getInimigoLocation(i), cenario,player) );
+					inimigos.push( new Inimigo("Inimigo", "Rebels", this.getInimigoLocation(i), this,player) );
 					
 				inimigosL = inimigos.length;
 			};
@@ -87,7 +88,6 @@
 		
 		var updateObjects = function(){
 			canvas.clearRect(0,0,mapSize[0],mapSize[1]);
-			//canvasElem.style.backgroundPosition = -newX+"px "+ (-newY)+"px";
 			
 			/* gui.save();
 			gui.clearRect(0,500,800,100);
@@ -101,36 +101,37 @@
 			var newX = 0, newY = 0,
 				pX = player.getX(),
 				pY = player.getY();
-			// log(moveX,moveY);
+
+				
 			if(moveX != 0 || moveY != 0){
 			
 				if( cenario.checkTile(pX + spaceX,  pY )){
-					if((pX > 400 && pX < 1210) && cenario.checkPosX(newMouse[0] + moveX) ) newX = moveX;
+					if((pX > 400 && pX < 1210) && cenario.checkPosX(newMouse[0] + moveX) ) 
+						newX = moveX;
 					player.x += moveX
 				}
 				if( cenario.checkTile(pX,  pY + spaceY) ){
-					if((pY > 290 && pY < 695) && cenario.checkPosY(newMouse[1] + moveY) ) newY = moveY;
+					if((pY > 290 && pY < 695) && cenario.checkPosY(newMouse[1] + moveY) ) 
+						newY = moveY;
 					player.y += moveY;
 				}
+				newMouse[0] += newX;
+				newMouse[1] += newY;
 			}
-
-			newMouse[0] += newX;
-			newMouse[1] += newY;
+			
 			
 			cenario.drawSelf(canvas,newX,newY);
 			
 			player.setRotate(newMouse[0] + mouseX - pX, newMouse[1] + mouseY - pY);
+			player.drawSelf(canvas);
 
-			
-
-			if(mClick) player.atira();
-			
 			//Handle enemies
 			for(var i = 0; i < inimigosL; i++){
 				inimigos[i].drawSelf(canvas);
 				inimigos[i].UpdateState();
 			}
-			player.drawSelf(canvas);
+			
+			
 		},
 
 		updateScreen = function(){
@@ -151,8 +152,18 @@
 				console.log(1000/rate.avg());rate.shift();
 			}
 			tempoInicial = +new Date; */
-			
 			//setTimeout(updateScreen,30);
+		},
+		
+		pause = function(){
+			if(paused){
+				interval = setInterval(updateScreen,33);
+				paused = false;
+			}else {
+				clearInterval(interval);
+				paused = true;
+			}
+		
 		},
 		
 		checkKeys = function() {
@@ -164,19 +175,19 @@
 			if (keyOn[37] || keyOn[65]) { moveX = -velocity; spaceX = -space} //left arrow, a key
 			if (keyOn[38] || keyOn[87]) { moveY = -velocity; spaceY = -space} //up arrow, w key
 			if (keyOn[40] || keyOn[83]) { moveY = velocity; spaceY = space} //down arrow, s key
+			
+			if(keyOn[32] ) {player.recarregar();}
+			if(mClick) {player.atira();}
+			if(keyOn[66]) {player.ChuvaDeMeteoros();}
+			
+			//if(keyOn[27] || keyOn[80]) pause();
 			//if (keyOn[13]) { } // enter
 			
-			;
 			if (keyOn[49]) { player.setArma(0); } // 1
 			else if (keyOn[50]) { player.setArma(1); } // 2
 			else if (keyOn[51]) { player.setArma(2); } // 3
 			else if (keyOn[52]) { player.setArma(3); } // 4
-		},
-		
-		CharCode = function (code){
-			return String.fromCharCode(code).toLowerCase();
 		};
-		var ze = 0;
 		
 		makeCanvas = function(id, width, height, append) {
 			var canvas = document.createElement("canvas");
@@ -184,7 +195,6 @@
 			canvas.width = Number(width) || 0;
 			canvas.height = Number(height) || 0;
 			if (append) {
-				//canvas.style.display = "none";
 				document.body.appendChild(canvas);
 			}
 			return canvas;
@@ -198,7 +208,7 @@
 		d.onmousedown = function() { mClick = true;};
 		d.onmouseup = function() { mClick = false;};
 		d.onselectstart = function() { return false; };
-		d.onkeydown = function(e){keyOn[ (e||window.event).keyCode ] = true; if(keyOn[32] == true) { e.preventDefault?e.preventDefault():e.returnValue = false; player.recarregar() }};
+		d.onkeydown = function(e){keyOn[ (e||window.event).keyCode ] = true; if (keyOn[27]) pause(); if(keyOn[32]) { e.preventDefault?e.preventDefault():e.returnValue = false;}};
 		d.onkeyup = function(e){ keyOn[ (e||window.event).keyCode ] = false;};
 		
 		$("reset").onmousedown = function(){ player.setLocationTo(50,50);};

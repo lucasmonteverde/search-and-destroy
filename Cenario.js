@@ -8,7 +8,7 @@
  
 var Cenario = function(){
 
-	var	self = this, tS, mapa, mapPng, limitRight, limitDown,inimigos;
+	var	self = this, tS, mapa, mapPng, limitRight, limitDown,inimigos,mapSize;
 	
 	String.prototype.toInt = function(){
 		return parseInt(this);
@@ -41,6 +41,7 @@ var Cenario = function(){
 		limitDown = (tS * mapa.length) - 600;
 		inimigos = data.inimigos;
 		
+		
 		//mapa.Show();
 		/** Map Generator **/
 		/*
@@ -68,7 +69,7 @@ var Cenario = function(){
 	
 	this.drawSelf = function(canvas,newX,newY){
 		canvas.translate(-newX,-newY);
-		canvas.drawImage(mapPng,0,0);
+		canvas.drawImage(mapPng,0,0, mapSize[0],mapSize[1]);
 	},
 	
 	this.drawTile = function(m, x, y){
@@ -114,6 +115,9 @@ var Cenario = function(){
 	this.getMapa = function(){
 		return mapa;
 	},
+	this.getMapSize = function(){
+		return mapSize;
+	}
 	this.GridGenerator = function(width, height){
 		var	floor = Math.floor,
 			random = Math.random,
