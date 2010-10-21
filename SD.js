@@ -33,13 +33,13 @@
 	};
 
 	var SD = function(){
-		preloader = {}, canvas ={};
+		preloader = {};
 		
 		var frames = 0, tempoInicial = 0, interval, paused = false, fpsCounter, msg,
 			mouseX = 800, mouseY = 100, newMouse = [0,0],
 			moveX = 0, moveY = 0, spaceX = 0, spaceY = 0,
 			mClick = false, keyOn = [],
-			cenario, player, inimigos = [],inimigosL=0,inimigosMortos=0,mapSize = [];
+			canvas ={}, cenario, player, inimigos = [],inimigosL=0,inimigosMortos=0,mapSize = [];
 			
 		var screenSize = (window.innerHeight - 600) /2;
 		d.body.style.marginTop = screenSize > 0? screenSize + "px":0;
@@ -126,39 +126,53 @@
 			player.setRotate(newMouse[0] + mouseX - pX, newMouse[1] + mouseY - pY);
 			player.drawSelf(canvas);
 			
-			for(var b = 0; b< player.bullets.length;b++){
+		},
+		
+		updateBullets = function(){
+		
+			for(var b = 0, bullets = player.bullets; b< bullets.length;b++){
 				var bl = player.bullets[b];
 				if( cenario.checkTile(bl.x, bl.y) && bl.getAlcance()){
+					/**/
 					for(var en = 0;en<inimigosL; en++){
 						if(inimigos[en].hitTest(bl.x,bl.y) && !inimigos[en].morto){
 							inimigos[en].hitBy(bl.forcaImpacto);
 							if(inimigos[en].morto)inimigosMortos++;
-							player.bullets.splice(b,1);
+							bullets.splice(b,1);
 						}
 					}
+					/**/
 					bl.drawSelf(canvas);
-				}else player.bullets.splice(b,1);
+				}else bullets.splice(b,1);
 			}
 
 			//Handle enemies
 			for(var i = 0; i < inimigosL; i++){
-				inimigos[i].drawSelf(canvas);
-				inimigos[i].UpdateState();
-				for(var b = 0; b< inimigos[i].bullets.length;b++){
-					var bl = inimigos[i].bullets[b];
+				var en = inimigos[i];
+				en.drawSelf(canvas);
+				for(var b = 0,enBullets = en.bullets; b < enBullets.length; b++){
+					var bl = en.bullets[b];
 					if( cenario.checkTile(bl.x, bl.y) && bl.getAlcance()){
+						/**/
 						if(player.hitTest(bl.x,bl.y)){
 							player.hitBy(bl.forcaImpacto);
-							inimigos[i].bullets.splice(b,1);
+							enBullets.splice(b,1);
 							continue;
 						}
+						/**/
 						bl.drawSelf(canvas);
-					}else inimigos[i].bullets.splice(b,1);
+					}else enBullets.splice(b,1);
 				}
 			}
-			
-			
-		},
+		
+		}
+		
+		setMessage = function(message){
+			msg.innerHTML = message;
+			msg.style.top = (window.innerHeight - 18) / 2 + "px";
+			msg.style.left = (window.innerWidth - msg.offsetWidth) / 2 + "px";
+			msg.set = true;
+		}
 
 		updateScreen = function(){
 			if(player.morto)
@@ -167,14 +181,12 @@
 				var action = "FUCK YEAH YOU WIN";
 			
 			if(action && !msg.set){
-				msg.innerHTML = action;
-				msg.style.top = (window.innerHeight - 18) / 2 + "px";
-				msg.style.left = (window.innerWidth - msg.offsetWidth) / 2 + "px";
-				msg.set = true;
+				setMessage(action);
 			}
 			
 			checkKeys();
 			updateObjects();
+			updateBullets();
 			
 			if(tempoInicial == 0) tempoInicial = new Date().getTime();
 			
@@ -195,9 +207,11 @@
 		
 		pause = function(){
 			if(paused){
+				msg.innerHTML = '';
 				interval = setInterval(updateScreen,33);
 				paused = false;
 			}else {
+				setMessage("PAUSED");
 				clearInterval(interval);
 				paused = true;
 			}

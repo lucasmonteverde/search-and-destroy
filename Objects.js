@@ -35,13 +35,13 @@ Personagem = Class.create({
 	morto:	 	false,
 	arma: 		0, //Arma Inicial
 	tiroInicial:0,
+	rotate: 0,
 	
 	
 	init:function(name,type,pos){
 		this.name = name,
 		this.x = pos[0],
 		this.y = pos[1],
-		this.rotate = 0,
 		this.type = type;
 		this.setPlayer(type),
 		
@@ -80,17 +80,11 @@ Personagem = Class.create({
 		if(this.morto){
 			f = 2;
 		}
-		this.w = this.frame[f].width;
-		this.h = this.frame[f].height;
-		this.w2 = this.w/2;
-		this.h2 = this.h/2;
-			
-		this.canvasElem.width = this.w;
-		this.canvasElem.height = this.h;
 		
+		/** /
 		this.canvas.save();
 		
-		//this.canvas.clearRect(0,0,this.w,this.h);
+		this.canvas.clearRect(0,0,this.w,this.h);
 		this.canvas.translate(this.w2,this.h2);
 		this.canvas.rotate(this.rotate);
 		this.canvas.drawImage(this.frame[f], -this.w2, -this.h2,this.w,this.h);
@@ -98,6 +92,12 @@ Personagem = Class.create({
 		canvas.drawImage(this.canvasElem, this.x - this.w2, this.y - this.h2,this.w,this.h); 
 		
 		this.canvas.restore();
+		/**/
+		canvas.save();
+		canvas.translate(this.x,this.y);
+		canvas.rotate(this.rotate);
+		canvas.drawImage(this.frame[f], -this.w2, -this.h2, this.w,this.h);
+		canvas.restore();
 
 		/** /
 		for(var i = 0; i < this.bullets.length; i++){
@@ -256,6 +256,11 @@ Inimigo = Personagem.extend({
 		this.solution		= 0;
 		
 		this.delay = 0;
+	},
+	
+	drawSelf: function(){
+		Personagem.prototype.drawSelf.apply(this,arguments);
+		this.UpdateState();
 	},
 	
 	ChangeState: function(state){
