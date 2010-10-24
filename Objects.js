@@ -45,8 +45,6 @@ Personagem = Class.create({
 		this.type = type;
 		this.setPlayer(type),
 		
-		this.canvasElem = makeCanvas(name,this.w,this.h),
-		this.canvas = this.canvasElem.getContext("2d"),
 		this.bullets = [];
 		this.armas = [],
 		
@@ -81,18 +79,6 @@ Personagem = Class.create({
 			f = 2;
 		}
 		
-		/** /
-		this.canvas.save();
-		
-		this.canvas.clearRect(0,0,this.w,this.h);
-		this.canvas.translate(this.w2,this.h2);
-		this.canvas.rotate(this.rotate);
-		this.canvas.drawImage(this.frame[f], -this.w2, -this.h2,this.w,this.h);
-		
-		canvas.drawImage(this.canvasElem, this.x - this.w2, this.y - this.h2,this.w,this.h); 
-		
-		this.canvas.restore();
-		/**/
 		canvas.save();
 		canvas.translate(this.x,this.y);
 		canvas.rotate(this.rotate);
@@ -129,9 +115,10 @@ Personagem = Class.create({
 		
 		this.updatePanel();
 		if(this.vida > 1){
-			
+			SoundManager('hit');
 			//audioHit.start();
 		}else if(!this.morto){
+			SoundManager('die');
 			//audioMorte.start();
 			this.morto = true;
 		}
@@ -143,12 +130,13 @@ Personagem = Class.create({
 				this.bullets.push( this.fire(this.armas[this.arma]) );
 				return true;
 			}else{
+				SoundManager('empty');
 				log("No Bulelts");
 				return false;
 			}
 		}
 	},
-	ChuvaDeMeteoros: function(){
+	chuvaDeMeteoros: function(){
 		if(this.tiroInicial == 0 ){
 			this.tiroInicial = new Date().getTime();
 			var b = this.armas[this.arma];
@@ -159,15 +147,17 @@ Personagem = Class.create({
 		}
 	},
 	fire: function(arm){
+		SoundManager(arm.audio);
+		//preloader.getResource(arm.audio).play();
 		return new Bullet(this.x ,this.y,this.rotate, arm.vel , arm.forca, arm.img);
 	},
 	updatePanel: function(b){
 		if(this.type != "Ally") return;
 		var b = b || this.armas[this.arma];
 		//Make a HTML String;
-		this.vidaElem.innerHTML = "HP:" + this.vida;
-		this.armaElem.innerHTML = "Weapon: "+ b.nome;
-		this.balasElem.innerHTML = "Bullets: "+ b.balas;
+		this.painel.innerHTML = '<span id="hp">HP: '+ this.vida + '</span>' +
+								'<span id="arma">Weapon: '+ b.nome + '</span>' +
+								'<span id="balas">Bullets: '+ b.balas + '</span>';
 	},
 	updateBalas: function(fire){
 		var b = this.armas[this.arma];
@@ -175,15 +165,16 @@ Personagem = Class.create({
 		if(fire){
 			b.balas--;
 			this.updatePanel(b);
+			return b.balas + 1;
 		}
-		return b.balas + parseInt(fire?1:0);
+		return b.balas;
 	},
 	recarregar:  function(){
 		this.armas[this.arma].balas = this.armas[this.arma].maxBalas;
 	},
 	defineArmas: function(data,obj){
-		for(var o in data){
-			data[o].img =  preloader.getResource( data[o].img );
+		for(var i=0;i<data.length;i++){
+			data[i].img =  preloader.getResource( data[i].img );
 		}
 		obj.armas = data;
 		obj.updatePanel();
@@ -225,9 +216,10 @@ Jogador = Personagem.extend({
 	init: function(name, type, pos) { 
 		this._super(name, type, pos),
 		this.vida = 500,
-		this.vidaElem = $("hp"),
-		this.armaElem = $("arma"),
-		this.balasElem = $("balas");
+		this.painel = $('painel');
+		//this.vidaElem = $("hp"),
+		//this.armaElem = $("arma"),
+		//this.balasElem = $("balas");
 	},
 	
 	recarregar: function(){
@@ -268,25 +260,25 @@ Inimigo = Personagem.extend({
 	},
 	
 	updateSelf: function(check){
-		var pX = this.x + this.xSpeed,
-			pY = this.y + this.ySpeed,
-			spaceX = parseInt(this.xSpeed>0?16:-16),
-			spaceY = parseInt(this.ySpeed>0?16:-16);
 		if(this.vel < this.distancia){
+			var pX = this.x, pY = this.y,
+				spaceX = this.xSpeed>0?16:-16,
+				spaceY = this.ySpeed>0?16:-16;
+				
+			//console.log("px",pX + spaceX,"py",pY);
 			if(check){
 				if(this.cenario.checkTile(pX + spaceX, pY)){
-					this.x = pX;
+					this.x += this.xSpeed;
 					this.vel++;
 				}else this.vel = this.distancia;
-				if(this.cenario.checkTile(pX,  pY + spaceY)){
-					this.y = pY;
+				
+				if(this.cenario.checkTile(pX, pY + spaceY)){
+					this.y += this.ySpeed;
 					this.vel++;
 				}else this.vel = this.distancia;
-					
-				//this.vel += this.speed;
 				
 			}else{
-				this.setLocationTo(pX,pY);
+				this.setLocation(this.xSpeed,this.ySpeed);
 				this.vel += this.speed;
 			}
 		}
@@ -422,6 +414,11 @@ Inimigo = Personagem.extend({
 		} */
 		this.rotate = virar;
 		return true;
+	},
+	
+	baleado: function(){
+		this.ChangeState('Combate');
+		this.setDistancia(this.player.x - this.x, this.player.y - this.y);
 	},
 	
 	UpdateState: function(){

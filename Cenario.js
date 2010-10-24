@@ -8,7 +8,7 @@
  
 var Cenario = function(){
 
-	var	self = this, tS, mapa, mapPng, limitRight, limitDown,inimigos,mapSize;
+	var	self = this, tS, mapa, mapAI = [], mapPng, limitRight, limitDown,jogador,inimigos,mapSize;
 	
 	String.prototype.toInt = function(){
 		return parseInt(this);
@@ -26,20 +26,33 @@ var Cenario = function(){
 	}
 	
 	this.processMap = function(data){
-		mapa = data.matrix.split('\n\t\t');
+		
+		/* mapa = data.matrix.split('\n\t\t');
 		for(var i=0,l = mapa.length; i< l;i++){
 			mapa[i] = mapa[i].split(' ');
 			for(var j=0, m = mapa[0].length; j<m; j++){
 				mapa[i][j] = mapa[i][j].toInt();
 			}
 			if(i < l - 1) mapa[i].pop();
-		};
+		}; */
+		mapa = data.matrix.split(',');
+		
+		for(var i=0;i<30;i++){
+			mapAI[i] = [];
+			for(var j=0;j<50;j++)
+				mapAI[i][j] = mapa[ 50* i  + j];
+		}
+		//console.log(mapAI);
+		
+		
 		tS = data.tamanho.tile;
 		mapPng = preloader.getResource('mapa');
 		mapSize = [tS *  50, tS * 30];
-		limitRight = (tS * mapa[1].length) - 800;
-		limitDown = (tS * mapa.length) - 600;
+		limitRight = (tS * 50) - 800;
+		limitDown = (tS * 30) - 600;
 		inimigos = data.inimigos;
+		jogador = data.jogador;
+
 		
 		
 		//mapa.Show();
@@ -80,7 +93,7 @@ var Cenario = function(){
 	
 	this.checkTile = function(x, y){
 		try{
-			var local = self.getPosTile(x, y);
+			var local = self.getPosTile2(x, y);
 			if(local == 0) return true;
 			else return false;
 		}catch (e){
@@ -94,6 +107,10 @@ var Cenario = function(){
 		return mapa[ parseInt(y / tS,10)][parseInt(x / tS,10)];
 	},
 	
+	this.getPosTile2 = function(x, y){
+		return mapa[ parseInt( 50* parseInt(y/32)  + parseInt(x/32) ) ];
+	},
+	
 	/** Verifica se a posição do jogador X está dentro do limite horizontal interno do mapa **/
 	this.checkPosX = function(px){
 		return (px > -5 && px < limitRight)?true:false;
@@ -104,6 +121,10 @@ var Cenario = function(){
 		return (py > -5 && py < limitDown)?true:false;
 	},
 	
+	this.getMapa = function(){
+		return mapa;
+	},
+	
 	this.getInimigosCount = function(){
 		return inimigos.length;
 	},
@@ -112,12 +133,10 @@ var Cenario = function(){
 		return new Array( inimigos[i].x, inimigos[i].y );
 	},
 	
-	this.getMapa = function(){
-		return mapa;
+	this.getPlayerLocation = function(i){
+		return new Array( jogador.x, jogador.y );
 	},
-	this.getMapSize = function(){
-		return mapSize;
-	}
+	
 	this.GridGenerator = function(width, height){
 		var	floor = Math.floor,
 			random = Math.random,
@@ -129,4 +148,38 @@ var Cenario = function(){
 		};
 		return result;
 	};
+};
+
+var log = function() {
+	if (window.console && window.console.log) window.console.log( Array.prototype.slice.call(arguments)) ;
+},
+
+loadJson = function(json,callback,obj){
+	try{
+		var xhr = new XMLHttpRequest;
+		xhr.open('GET', json);
+		xhr.onload = function() { 
+			callback(JSON.parse(xhr.responseText),obj);
+		};
+		xhr.onerror = function() { log('request error', xhr);};
+		xhr.send();
+	}catch(e){
+		log('request error', e.message);
+	}
+},
+
+$ = function(id){
+	return document.getElementById(id);
+},
+
+makeCanvas = function(id, width, height, append) {
+	log("new Canvas");
+	var canvas = document.createElement("canvas");
+	canvas.id = id;
+	canvas.width = Number(width) || 0;
+	canvas.height = Number(height) || 0;
+	if (append) {
+		document.body.appendChild(canvas);
+	}
+	return canvas;
 };

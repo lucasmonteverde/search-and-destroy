@@ -1,30 +1,29 @@
-
-	[
-		{
-			"nome": "AK 47",
-			"vel": 11,
-			"forca": 35,
-			"balas": 30,
-			"maxBalas": 30,
-			"img": "blueBullet",
-			"audio": "audio/ak47.wav"
-		},
-		{
-			"nome": "m16",
-			"vel": 10,
-			"forca": 35,
-			"balas": 25,
-			"maxBalas": 25,
-			"img": "greenBullet",
-			"audio": "audio/m4a1.wav"
-		},
-		{
-			"nome": "9mm",
-			"vel": 15,
-			"forca": 20,
-			"balas": 18,
-			"maxBalas": 18,
-			"img": "purpleBullet",
-			"audio": "audio/deagle.wav"
-		}
-	]
+[
+	{
+		"nome": "AK 47",
+		"img": "blueBullet",
+		"audio": "ak47",
+		"vel": 11,
+		"forca": 35,
+		"balas": 30,
+		"maxBalas": 30
+	},
+	{
+		"nome": "m16",
+		"img": "greenBullet",
+		"audio": "m4a1",
+		"vel": 10,
+		"forca": 35,
+		"balas": 25,
+		"maxBalas": 25
+	},
+	{
+		"nome": "9mm",
+		"img": "purpleBullet",
+		"audio": "deagle",
+		"vel": 15,
+		"forca": 20,
+		"balas": 18,
+		"maxBalas": 18
+	}
+]

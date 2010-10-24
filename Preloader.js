@@ -14,12 +14,16 @@ Preloader = function(imageDictionary, audioDictionary){
 	this.load = function(){
 		if (typeof Audio != 'undefined' && audioDictionary){
 			for (a in audioDictionary){
-				totalToLoad++;
-				resources[a] = new Audio();
-				resources[a].addEventListener('canplaythrough', somethingLoaded, false);
-				resources[a].autobuffer = true;
-				resources[a].src = audioDictionary[a];
-				resources[a].load();
+				//resources[a] = [];
+				//for(var i=0;i<5;i++){
+					totalToLoad++;
+					resources[a] = new Audio();
+					resources[a].addEventListener('loadeddata', somethingLoaded, false);
+					//resources[a].addEventListener('ended', function () {this.pause();this.currentTime = 0}, false);
+					resources[a].autobuffer = true;
+					resources[a].src = audioDictionary[a];
+					resources[a].load();
+				//}
 			}
 		}
 		
@@ -33,8 +37,9 @@ Preloader = function(imageDictionary, audioDictionary){
 		}
 	};
 	
-	function somethingLoaded(){
+	function somethingLoaded(e){
 		leftToLoad++;
+		//console.log(e.target.src);
 		self.onProgress(leftToLoad / totalToLoad);
 		
 		if (leftToLoad == totalToLoad){
@@ -46,9 +51,9 @@ Preloader = function(imageDictionary, audioDictionary){
 		return resources[name];
 	};
 	
-	this.onProgress = function(p) {  };
+	this.onProgress = function(p) { document.getElementById('hp').innerHTML = parseInt(p*100) + "%" };
 	
-	this.onFinish = function() {};
+	this.onFinish = function() { };
 	
 	
 }

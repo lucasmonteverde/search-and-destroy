@@ -10,30 +10,8 @@
  
 (function(d,w,undefined){
 
-	log = function() {
-		if (window.console && window.console.log) window.console.log( Array.prototype.slice.call(arguments)) ;
-	};
-	
-	loadJson = function(json,callback,obj){
-		try{
-			var xhr = new XMLHttpRequest;
-			xhr.open('GET', json);
-			xhr.onload = function() { 
-				callback(JSON.parse(xhr.responseText),obj);
-			};
-			xhr.onerror = function() { log('request error', xhr);};
-			xhr.send();
-		}catch(e){
-			log('request error', e.message);
-		}
-	},
-	
-	$ = function(id){
-		return d.getElementById(id);
-	};
-
 	var SD = function(){
-		preloader = {};
+		preloader = {},SoundManager = {};
 		
 		var frames = 0, tempoInicial = 0, interval, paused = false, fpsCounter, msg,
 			mouseX = 800, mouseY = 100, newMouse = [0,0],
@@ -53,24 +31,31 @@
 			msg = $('message');
 			
 			cenario = new Cenario;
-			loadJson('json/mapa.json',cenario.processMap);
+			loadJson('json/mapa1.json',cenario.processMap);
 			
 			cenario.onFinish = function(){
-				mapSize = this.getMapSize();
+				mapSize = this.mapSize;
 				interval = setInterval(updateScreen,33) 
 			
-				player = new Jogador("Begode", "Ally", [50,50] );
-			
+				player = new Jogador("Begode", "Ally", this.getPlayerLocation() );
 				for(var i = 0; i < cenario.getInimigosCount(); i++)
 					inimigos.push( new Inimigo("Inimigo", "Rebels", this.getInimigoLocation(i), this,player) );
 					
 				inimigosL = inimigos.length;
+		
 			};
 		};
 		
+		var a = new Audio('');
+		var canPlayWav = a.canPlayType('audio/x-wav');
+		//var canPlayMp3 = ("no" != myAudio.canPlayType("audio/mpeg")) && ("" != myAudio.canPlayType("audio/mpeg"));
+		var songfile = canPlayWav == '' || canPlayWav == 'no' || canPlayWav == 'maybe' ? 'audio/ak47.mp3' : 'audio/ak47.wav';
+		var format = navigator.userAgent.indexOf("Chrome") > 0 ? '.mp3': '.wav';
+
+		
 		preloader = new Preloader(
 			{
-				mapa:			'images/mapa.png',
+				mapa:			'images/mapa1.png',
 				soldier1:		'images/soldier01.png',
 				soldier1_fire:	'images/soldier01_fire.png',
 				soldier2:		'images/soldier02.png',
@@ -79,16 +64,47 @@
 				greenBullet:	'images/bullets/green-round.png',
 				blueBullet:		'images/bullets/blue-round.png',
 				purpleBullet:	'images/bullets/purple-round.png'
+			},
+			{
+				ak47:	'audio/ak47'+ format,
+				deagle: 'audio/deagle'+ format,
+				m4a1:	'audio/m4a1'+ format,
+				die:	'audio/die'+ format,
+				hit:	'audio/hit'+ format,
+				empty: 	'audio/w_empty'+ format,
+				walk1:	'audio/pl_dirt1'+ format,
+				walk2:	'audio/pl_dirt2'+ format,
+				walk3:	'audio/pl_dirt3'+ format,
+				walk4:	'audio/pl_dirt4'+ format
 			}
 		);
 
 		preloader.onFinish = init;
 		preloader.load();
+
+		SoundManager = function(s){
+			var sound = preloader.getResource(s);
+			sound.volume = 0.1;
+			sound.currentTime = 0;
+			sound.play();
+			
+			/** /
+			for(var a=0;a<5;a++){
+				console.log( sound[a].currentTime, sound[a].duration );
+				if(sound[a].currentTime == sound[a].duration){
+					sound[a].currentTime = 0;
+					sound[a].play();
+					break;
+				}
+				sound[a].play();
+			}
+			/**/
+		};
 		
 		//var gui = $("gui").getContext("2d");
 		
 		var updateObjects = function(){
-			canvas.clearRect(0,0,mapSize[0],mapSize[1]);
+			//canvas.clearRect(newMouse[0],newMouse[1],816,616);
 			
 			/* gui.save();
 			gui.clearRect(0,500,800,100);
@@ -124,7 +140,6 @@
 			cenario.drawSelf(canvas,newX,newY);
 			
 			player.setRotate(newMouse[0] + mouseX - pX, newMouse[1] + mouseY - pY);
-			player.drawSelf(canvas);
 			
 		},
 		
@@ -135,10 +150,13 @@
 				if( cenario.checkTile(bl.x, bl.y) && bl.getAlcance()){
 					/**/
 					for(var en = 0;en<inimigosL; en++){
-						if(inimigos[en].hitTest(bl.x,bl.y) && !inimigos[en].morto){
-							inimigos[en].hitBy(bl.forcaImpacto);
-							if(inimigos[en].morto)inimigosMortos++;
-							bullets.splice(b,1);
+						if(inimigos[en].hitTest(bl.x,bl.y)){
+							if(inimigos[en].hitTest(bl.x,bl.y) && !inimigos[en].morto){
+								inimigos[en].hitBy(bl.forcaImpacto);
+								inimigos[en].baleado();
+								if(inimigos[en].morto)inimigosMortos++;
+								bullets.splice(b,1);
+							}
 						}
 					}
 					/**/
@@ -164,6 +182,8 @@
 					}else enBullets.splice(b,1);
 				}
 			}
+			
+			player.drawSelf(canvas);
 		
 		}
 		
@@ -241,8 +261,8 @@
 			
 			if(keyOn[32] ) {player.recarregar();}
 			if(mClick) {player.atira();}
-			if(keyOn[66]) {player.ChuvaDeMeteoros();}
-			if(keyOn[82]) {player.morto = false; player.vida = 500; $('message').innerHTML = '';}
+			if(keyOn[66]) {player.chuvaDeMeteoros();}
+			if(keyOn[82]) {player.morto = false; player.vida = 500; player.updatePanel(); $('message').innerHTML = '';}
 			
 			//if(keyOn[27] || keyOn[80]) pause();
 			//if (keyOn[13]) { } // enter
@@ -253,16 +273,6 @@
 			else if (keyOn[52]) { player.setArma(3); } // 4
 		};
 		
-		makeCanvas = function(id, width, height, append) {
-			var canvas = document.createElement("canvas");
-			canvas.id = id;
-			canvas.width = Number(width) || 0;
-			canvas.height = Number(height) || 0;
-			if (append) {
-				document.body.appendChild(canvas);
-			}
-			return canvas;
-		};
 		/*
 		canvas.addEventListener('touchstart', function(e){mouseX = e.touches[0].pageX, mouseY = e.touches[0].pageY; mClick = true;}, false);
 		canvas.addEventListener('touchmove', function(e){mouseX = e.touches[0].pageX, mouseY = e.touches[0].pageY;}, false);
