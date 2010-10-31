@@ -14,7 +14,7 @@
 			if (magic != isFn && isFn(this.init)) this.init.apply(this, arguments);
 		};
 		k.prototype = new this(isFn); // use our private method as magic cookie
-		for (key in proto) (function(fn, sfn){ // create a closure
+		for (var key in proto) (function(fn, sfn){ // create a closure
 			k.prototype[key] = !isFn(fn) || !isFn(sfn) ? fn : // add _super method
 			function() { this._super = sfn; return fn.apply(this, arguments); };
 		})(proto[key], k.prototype[key]);
@@ -37,14 +37,12 @@ Personagem = Class.create({
 	tiroInicial:0,
 	rotate: 0,
 	
-	
 	init:function(name,type,pos){
 		this.name = name,
 		this.x = pos[0],
 		this.y = pos[1],
 		this.type = type;
 		this.setPlayer(type),
-		
 		this.bullets = [];
 		this.armas = [],
 		
@@ -68,6 +66,7 @@ Personagem = Class.create({
 		this.w2 = this.w/2;
 		this.h2 = this.h/2;
 	},
+	marcadorHP:function(c){},
 	
 	drawSelf: function(canvas){
 		//this.updateSelf();
@@ -75,12 +74,14 @@ Personagem = Class.create({
 		if( (this.tiroInicial > (new Date().getTime() - 200))) f = 1;
 		else this.tiroInicial = f = 0;
 		
-		if(this.morto){
-			f = 2;
-		}
-		
 		canvas.save();
 		canvas.translate(this.x,this.y);
+		
+		if(this.morto){
+			f = 2;
+		}else this.marcadorHP(canvas); 
+		//Desenha a barra de hp somente para inimigos apos o translate do canvas, e antes de rotacionar
+		
 		canvas.rotate(this.rotate);
 		canvas.drawImage(this.frame[f], -this.w2, -this.h2, this.w,this.h);
 		canvas.restore();
@@ -225,7 +226,7 @@ Jogador = Personagem.extend({
 	recarregar: function(){
 		Personagem.prototype.recarregar.call(this);
 		this.updatePanel();
-	}
+	},
 	/**/
 	
 });
@@ -254,7 +255,12 @@ Inimigo = Personagem.extend({
 		Personagem.prototype.drawSelf.apply(this,arguments);
 		this.UpdateState();
 	},
-	
+	marcadorHP:function(c){
+		c.fillStyle = "blank";
+		c.fillRect(-this.w2 + 21 , -this.h2 + 19 , this.w - 43, 5);
+		c.fillStyle = "red";
+		c.fillRect(-this.w2 + 22, -this.h2 + 20, ( this.vida / this.w) *100 - 45, 3);
+	},
 	ChangeState: function(state){
 		this.state = StateType[state];
 	},

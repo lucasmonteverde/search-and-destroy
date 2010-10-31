@@ -2,6 +2,7 @@
 <html>
 <head>
 	<title> Search And Destroy </title>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
 	<link rel="shortcut icon" href="images/favicon.png" />
 	<script type="text/javascript" src="Preloader.js" ></script>
 	<script type="text/javascript" src="Cenario.js" ></script>
@@ -16,7 +17,8 @@
 		#p {z-index:2}
 		#reset{position:absolute; top:3px; left:3px;}
 		#painel{position:absolute; top:50px; left:3px; /* width:800px; bottom:0;  */font:18px Helvetica;}
-		#painel span {display:block;}
+		#painel span,#guide span {display:block;}
+		#guide{position:absolute; right:0; top:50px;}
 		#message{position:absolute; /* margin-top:50px; */ font:26px Helvetica;}
 	</style>
 </head>
@@ -25,13 +27,18 @@
 	<div id="fps"></div>
 	<!-- <canvas id="m" width="800" height="600"></canvas> -->
 	<canvas id="c" width="800" height="600"></canvas>
-	<!-- <canvas id="gui" width="800" height="600"></canvas> -->
+	<canvas id="gui" width="800" height="600"></canvas>
 	<div id="painel">
 		<span id="hp"></span>
 		<span id="arma"></span>
 		<span id="balas"></span>
 		
 	</div>
+    <div id="guide">
+    	<span> Espaço: Recarregar </span>
+        <span> 1,2,3: Trocar armas </span>
+        <span> ESC: Pausar </span>
+    </div>
 	<div id="message"></div>
 	
 </body>

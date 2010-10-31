@@ -8,7 +8,14 @@
  * http://uneduetre.com.br/lucas/license.txt
  */
  
+
+
 (function(d,w,undefined){
+	Audio.prototype.isRunning = function(){
+		if(this.currentTime == this.duration || this.currentTime == 0)
+			return false;
+		else return true;
+	};
 
 	var SD = function(){
 		preloader = {},SoundManager = {};
@@ -17,16 +24,21 @@
 			mouseX = 800, mouseY = 100, newMouse = [0,0],
 			moveX = 0, moveY = 0, spaceX = 0, spaceY = 0,
 			mClick = false, keyOn = [],
-			canvas ={}, cenario, player, inimigos = [],inimigosL=0,inimigosMortos=0,mapSize = [];
+			canvas ={}, gui , cenario, player, inimigos = [],inimigosL=0,inimigosMortos=0,mapSize = [];
+			
 			
 		var screenSize = (window.innerHeight - 600) /2;
 		d.body.style.marginTop = screenSize > 0? screenSize + "px":0;
-					
+		
+		var audio = [4];
+		var lastA = 0;
+		var format = navigator.userAgent.indexOf("Chrome") > 0 ? '.mp3': '.wav';
 		
 		var init = function(){
 			log('Start');
 			
 			canvas = $("c").getContext("2d");
+			gui = $("gui").getContext("2d");
 			fpsCounter = $("fps");
 			msg = $('message');
 			
@@ -35,22 +47,23 @@
 			
 			cenario.onFinish = function(){
 				mapSize = this.mapSize;
-				interval = setInterval(updateScreen,33) 
+				interval = setInterval(updateScreen,33);
 			
 				player = new Jogador("Begode", "Ally", this.getPlayerLocation() );
 				for(var i = 0; i < cenario.getInimigosCount(); i++)
 					inimigos.push( new Inimigo("Inimigo", "Rebels", this.getInimigoLocation(i), this,player) );
 					
 				inimigosL = inimigos.length;
-		
+				
+				audio[0] = preloader.getResource('walk1');
+				audio[1] = preloader.getResource('walk2');
+				audio[2] = preloader.getResource('walk3');
+				audio[3] = preloader.getResource('walk4');
+				
 			};
 		};
 		
-		var a = new Audio('');
-		var canPlayWav = a.canPlayType('audio/x-wav');
-		//var canPlayMp3 = ("no" != myAudio.canPlayType("audio/mpeg")) && ("" != myAudio.canPlayType("audio/mpeg"));
-		var songfile = canPlayWav == '' || canPlayWav == 'no' || canPlayWav == 'maybe' ? 'audio/ak47.mp3' : 'audio/ak47.wav';
-		var format = navigator.userAgent.indexOf("Chrome") > 0 ? '.mp3': '.wav';
+		
 
 		
 		preloader = new Preloader(
@@ -83,7 +96,7 @@
 		preloader.load();
 
 		SoundManager = function(s){
-			var sound = preloader.getResource(s);
+			var sound = typeof s == "string" ? preloader.getResource(s) : s;
 			sound.volume = 0.1;
 			sound.currentTime = 0;
 			sound.play();
@@ -107,12 +120,16 @@
 			//canvas.clearRect(newMouse[0],newMouse[1],816,616);
 			
 			/* gui.save();
-			gui.clearRect(0,500,800,100);
-			gui.fillStyle = "black";
-			gui.fillRect(0,500,800,100);
-			gui.fillStyle = "red";
+			gui.clearRect(0,540,800,60);
+			gui.fillStyle = "rgba(0,0,0,0.2)";
+			gui.fillRect(0,540,800,60);
+			gui.fillStyle = "rgb(0,0,0)";
+			
 			gui.font = "18pt Arial";
-			//gui.fillText("OLA", 300, 580);
+			gui.fillText(player.vida, 80, 580);
+			var b = player.armas[player.arma];
+			gui.fillText(b.nome, 400, 580);
+			gui.fillText(b.balas, 500, 580);
 			gui.restore(); */
 					
 			var newX = 0, newY = 0,
@@ -134,6 +151,15 @@
 				}
 				newMouse[0] += newX;
 				newMouse[1] += newY;
+				
+				var a = parseInt((Math.random() * 4));
+				var sound = audio[lastA];
+			
+				if(!sound.isRunning()){
+					//console.log( audio[a],a);
+					SoundManager(audio[a]);
+					lastA = a;
+				}
 			}
 			
 			
@@ -187,11 +213,11 @@
 		
 		}
 		
-		setMessage = function(message){
+		setMessage = function(message, set){
 			msg.innerHTML = message;
 			msg.style.top = (window.innerHeight - 18) / 2 + "px";
 			msg.style.left = (window.innerWidth - msg.offsetWidth) / 2 + "px";
-			msg.set = true;
+			msg.set = set;
 		}
 
 		updateScreen = function(){
@@ -201,7 +227,7 @@
 				var action = "FUCK YEAH YOU WIN";
 			
 			if(action && !msg.set){
-				setMessage(action);
+				setMessage(action,true);
 			}
 			
 			checkKeys();
@@ -231,7 +257,11 @@
 				interval = setInterval(updateScreen,33);
 				paused = false;
 			}else {
-				setMessage("PAUSED");
+				if(msg.innerHTML != "") {
+					reset();
+					return;
+				}
+				setMessage("PAUSED",false);
 				clearInterval(interval);
 				paused = true;
 			}
@@ -293,7 +323,7 @@
 	
 })(document,window);
 
-Array.prototype.avg = function() {
+/* Array.prototype.avg = function() {
 	var av = 0, cnt = 0, len = this.length;
 	for (var i = 0; i < len; i++) {
 		var e = +this[i];
@@ -301,4 +331,4 @@ Array.prototype.avg = function() {
 		if (this[i] == e) {av += e; cnt++;}
 	}
 	return av/cnt;
-};
+}; */
