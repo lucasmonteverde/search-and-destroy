@@ -89,7 +89,8 @@
 				walk2:	'audio/pl_dirt2'+ format,
 				walk3:	'audio/pl_dirt3'+ format,
 				walk4:	'audio/pl_dirt4'+ format
-			}
+			},
+			0.2
 		);
 
 		preloader.onFinish = init;
@@ -97,21 +98,8 @@
 
 		SoundManager = function(s){
 			var sound = typeof s == "string" ? preloader.getResource(s) : s;
-			sound.volume = 0.1;
 			sound.currentTime = 0;
 			sound.play();
-			
-			/** /
-			for(var a=0;a<5;a++){
-				console.log( sound[a].currentTime, sound[a].duration );
-				if(sound[a].currentTime == sound[a].duration){
-					sound[a].currentTime = 0;
-					sound[a].play();
-					break;
-				}
-				sound[a].play();
-			}
-			/**/
 		};
 		
 		//var gui = $("gui").getContext("2d");
@@ -152,12 +140,10 @@
 				newMouse[0] += newX;
 				newMouse[1] += newY;
 				
-				var a = parseInt((Math.random() * 4));
-				var sound = audio[lastA];
-			
-				if(!sound.isRunning()){
-					//console.log( audio[a],a);
-					SoundManager(audio[a]);
+				if(!audio[lastA].isRunning()){
+					var a = parseInt((Math.random() * 4));
+					audio[a].currentTime = 0;
+					audio[a].play();
 					lastA = a;
 				}
 			}

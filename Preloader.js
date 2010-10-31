@@ -4,7 +4,7 @@
  *
  * Modifield by Lucas Monteverde <monteverde13@yahoo.com.br>
  */
-Preloader = function(imageDictionary, audioDictionary){
+Preloader = function(imageDictionary, audioDictionary,vol){
 
 	var totalToLoad = 0, leftToLoad = 0,resources = {};
 	
@@ -22,6 +22,7 @@ Preloader = function(imageDictionary, audioDictionary){
 					//resources[a].addEventListener('ended', function () {this.pause();this.currentTime = 0}, false);
 					resources[a].autobuffer = true;
 					resources[a].src = audioDictionary[a];
+					resources[a].volume = vol;
 					resources[a].load();
 				//}
 			}
