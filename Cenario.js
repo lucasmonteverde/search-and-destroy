@@ -10,21 +10,6 @@ var Cenario = function(){
 
 	var	self = this, tS, mapa, mapAI = [], mapPng, limitRight, limitDown,jogador,inimigos,mapSize;
 	
-	String.prototype.toInt = function(){
-		return parseInt(this);
-	}
-	
-	Array.prototype.Show = function(){
-		var result = "";
-		for(var i=0,l = this.length; i<l;i++){
-			for(var j=0,m =this[0].length; j<m;j++){
-				result += this[i][j] + " ";
-			}
-			result += "\n";
-		}
-		console.log(result);
-	}
-	
 	this.processMap = function(data){
 		
 		/* mapa = data.matrix.split('\n\t\t');
@@ -95,6 +80,11 @@ var Cenario = function(){
 		try{
 			var local = self.getPosTile2(x, y);
 			if(local == 0) return true;
+			/** /
+			if(local == 2){
+				new Explosion(x,y);
+			}
+			/**/
 			else return false;
 		}catch (e){
 			log("Check Tile Fail",e);
@@ -135,18 +125,6 @@ var Cenario = function(){
 	
 	this.getPlayerLocation = function(i){
 		return new Array( jogador.x, jogador.y );
-	},
-	
-	this.GridGenerator = function(width, height){
-		var	floor = Math.floor,
-			random = Math.random,
-			result = new Array(height);
-		for(var	j, i = 0; i < height; i++) {
-			result[i] = new Array(width);
-			for(j = 0; j < width; j++)
-				result[i][j] = (j * i) % 7 ? floor(random() * 200) % 2 : 0;
-		};
-		return result;
 	};
 };
 
@@ -170,8 +148,9 @@ loadJson = function(json,callback,obj){
 
 $ = function(id){
 	return document.getElementById(id);
-},
+};
 
+/*
 makeCanvas = function(id, width, height, append) {
 	log("new Canvas");
 	var canvas = document.createElement("canvas");
@@ -183,3 +162,29 @@ makeCanvas = function(id, width, height, append) {
 	}
 	return canvas;
 };
+
+
+String.prototype.toInt = function(){
+	return parseInt(this);
+}
+
+Array.prototype.avg = function() {
+	var av = 0, cnt = 0, len = this.length;
+	for (var i = 0; i < len; i++) {
+		var e = +this[i];
+		if(!e && this[i] !== 0 && this[i] !== '0') e--;
+		if (this[i] == e) {av += e; cnt++;}
+	}
+	return av/cnt;
+}; 
+	
+Array.prototype.Show = function(){
+	var result = "";
+	for(var i=0,l = this.length; i<l;i++){
+		for(var j=0,m =this[0].length; j<m;j++){
+			result += this[i][j] + " ";
+		}
+		result += "\n";
+	}
+	console.log(result);
+} */

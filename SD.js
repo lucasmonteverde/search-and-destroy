@@ -18,7 +18,7 @@
 	};
 
 	var SD = function(){
-		preloader = {},SoundManager = {};
+		preloader = {},SoundManager = {}, bullets = [];
 		
 		var frames = 0, tempoInicial = 0, interval, paused = false, fpsCounter, msg,
 			mouseX = 800, mouseY = 100, newMouse = [0,0],
@@ -69,6 +69,8 @@
 		preloader = new Preloader(
 			{
 				mapa:			'images/mapa1.png',
+				player1:		'images/player1_1.png',
+				player2:		'images/player2_1.png',
 				soldier1:		'images/soldier01.png',
 				soldier1_fire:	'images/soldier01_fire.png',
 				soldier2:		'images/soldier02.png',
@@ -98,6 +100,8 @@
 
 		SoundManager = function(s){
 			var sound = typeof s == "string" ? preloader.getResource(s) : s;
+			
+			
 			sound.currentTime = 0;
 			sound.play();
 		};
@@ -151,16 +155,21 @@
 			
 			cenario.drawSelf(canvas,newX,newY);
 			
-			player.setRotate(newMouse[0] + mouseX - pX, newMouse[1] + mouseY - pY);
+			for(var i = 0; i < inimigosL; i++){
+				inimigos[i].drawSelf(canvas);
+			}
+			
+			player.drawSelf(canvas);
+			
+			if(!msg.set) player.setRotate(newMouse[0] + mouseX - pX, newMouse[1] + mouseY - pY);
 			
 		},
 		
 		updateBullets = function(){
 		
-			for(var b = 0, bullets = player.bullets; b< bullets.length;b++){
+			/* for(var b = 0, bullets = player.bullets; b< bullets.length;b++){
 				var bl = player.bullets[b];
 				if( cenario.checkTile(bl.x, bl.y) && bl.getAlcance()){
-					/**/
 					for(var en = 0;en<inimigosL; en++){
 						if(inimigos[en].hitTest(bl.x,bl.y)){
 							if(inimigos[en].hitTest(bl.x,bl.y) && !inimigos[en].morto){
@@ -171,32 +180,50 @@
 							}
 						}
 					}
-					/**/
 					bl.drawSelf(canvas);
 				}else bullets.splice(b,1);
-			}
+			} */
 
 			//Handle enemies
-			for(var i = 0; i < inimigosL; i++){
+			/* for(var i = 0; i < inimigosL; i++){
 				var en = inimigos[i];
 				en.drawSelf(canvas);
 				for(var b = 0,enBullets = en.bullets; b < enBullets.length; b++){
 					var bl = en.bullets[b];
 					if( cenario.checkTile(bl.x, bl.y) && bl.getAlcance()){
-						/**/
 						if(player.hitTest(bl.x,bl.y)){
 							player.hitBy(bl.forcaImpacto);
 							enBullets.splice(b,1);
 							continue;
 						}
-						/**/
 						bl.drawSelf(canvas);
 					}else enBullets.splice(b,1);
 				}
-			}
+			} */
 			
-			player.drawSelf(canvas);
-		
+
+			for(var b = 0; b< bullets.length;b++){
+				var bl = bullets[b];
+				if( cenario.checkTile(bl.x, bl.y) && bl.getAlcance()){
+					if(player.hitTest(bl.x,bl.y)){
+						player.hitBy(bl.forcaImpacto);
+						bullets.splice(b,1);
+						continue;
+					}
+					for(var en = 0;en<inimigosL; en++){
+						if(inimigos[en].hitTest(bl.x,bl.y)){
+							if(inimigos[en].hitTest(bl.x,bl.y) && !inimigos[en].morto){
+								inimigos[en].hitBy(bl.forcaImpacto);
+								inimigos[en].baleado();
+								if(inimigos[en].morto)inimigosMortos++;
+								bullets.splice(b,1);
+								continue;
+							}
+						}
+					}
+					bl.drawSelf(canvas);
+				}else bullets.splice(b,1);
+			}
 		}
 		
 		setMessage = function(message, set){
@@ -216,7 +243,7 @@
 				setMessage(action,true);
 			}
 			
-			checkKeys();
+			if(!action)checkKeys();
 			updateObjects();
 			updateBullets();
 			
@@ -308,13 +335,3 @@
 	window.addEventListener('load', SD, false);
 	
 })(document,window);
-
-/* Array.prototype.avg = function() {
-	var av = 0, cnt = 0, len = this.length;
-	for (var i = 0; i < len; i++) {
-		var e = +this[i];
-		if(!e && this[i] !== 0 && this[i] !== '0') e--;
-		if (this[i] == e) {av += e; cnt++;}
-	}
-	return av/cnt;
-}; */

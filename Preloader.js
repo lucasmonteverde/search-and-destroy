@@ -52,7 +52,7 @@ Preloader = function(imageDictionary, audioDictionary,vol){
 		return resources[name];
 	};
 	
-	this.onProgress = function(p) { document.getElementById('hp').innerHTML = parseInt(p*100) + "%" };
+	this.onProgress = function(p) { document.getElementById('progress').value = parseInt(p*100) };  //+ "%"
 	
 	this.onFinish = function() { };
 	

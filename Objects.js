@@ -29,6 +29,7 @@ var Point = function(x,y){
 },
 StateType = {Patrulhar: 1, Combate: 2, Perseguir: 3, Atirar: 4, Fugir: 5, Morto: 0},
 Bullet = function(){this.init.apply(this,arguments)},
+Explosion = function(){this.init.apply(this,arguments)},
 
 Personagem = Class.create({
 	vida:		100,
@@ -53,16 +54,16 @@ Personagem = Class.create({
 	setPlayer: function(type){
 		this.frame = [];
 		if(type == "Ally"){
-			this.frame[0] = preloader.getResource('soldier1');
-			this.frame[1] = preloader.getResource('soldier1_fire');
+			this.image = preloader.getResource('player1');
+			//this.frame[1] = preloader.getResource('soldier1_fire');
 			
 		}else{
-			this.frame[0] = preloader.getResource('soldier2');
-			this.frame[1] = preloader.getResource('soldier2_fire');
+			this.image = preloader.getResource('player2');
+			//this.frame[1] = preloader.getResource('soldier2_fire');
 		}
-		this.frame[2] = preloader.getResource('dead');
-		this.w = this.frame[0].width;
-		this.h = this.frame[0].height;
+		//this.frame[2] = preloader.getResource('dead');
+		this.w = 100;
+		this.h = 100;
 		this.w2 = this.w/2;
 		this.h2 = this.h/2;
 	},
@@ -81,9 +82,8 @@ Personagem = Class.create({
 			f = 2;
 		}else this.marcadorHP(canvas); 
 		//Desenha a barra de hp somente para inimigos apos o translate do canvas, e antes de rotacionar
-		
 		canvas.rotate(this.rotate);
-		canvas.drawImage(this.frame[f], -this.w2, -this.h2, this.w,this.h);
+		canvas.drawImage(this.image, this.w * f,0, this.w,this.h, -this.w2, -this.h2,this.w,this.h); //this.w * (f+1)
 		canvas.restore();
 
 		/** /
@@ -128,7 +128,8 @@ Personagem = Class.create({
 		if(this.tiroInicial == 0 ){
 			if( this.updateBalas(true) ){
 				this.tiroInicial = new Date().getTime();
-				this.bullets.push( this.fire(this.armas[this.arma]) );
+				//this.bullets.push( this.fire(this.armas[this.arma]) );
+				bullets.push( this.fire(this.armas[this.arma]) );
 				return true;
 			}else{
 				SoundManager('empty');
@@ -143,7 +144,7 @@ Personagem = Class.create({
 			var b = this.armas[this.arma];
 			for(var i = 0; i<18;i++){
 				this.rotate += 0.35;
-				this.bullets.push( this.fire(b) );
+				bullets.push( this.fire(b) );
 			}
 		}
 	},
@@ -256,10 +257,10 @@ Inimigo = Personagem.extend({
 		this.UpdateState();
 	},
 	marcadorHP:function(c){
-		c.fillStyle = "blank";
-		c.fillRect(-this.w2 + 21 , -this.h2 + 19 , this.w - 43, 5);
+		c.fillStyle = "white";
+		c.fillRect(-21 , -31 , 42, 5);
 		c.fillStyle = "red";
-		c.fillRect(-this.w2 + 22, -this.h2 + 20, ( this.vida / this.w) *100 - 45, 3);
+		c.fillRect(-20, -30,  (this.vida / 100) * 40, 3);
 	},
 	ChangeState: function(state){
 		this.state = StateType[state];
@@ -531,3 +532,31 @@ Bullet.prototype = {
 		else return true;
 	}
 };
+
+Explosion.prototype = {
+	frame: 0,
+	frames: 8,
+	
+	init: function(x,y){
+		this.x = x;
+		this.y = y;
+		this.image = preloader.getResource('explosion');
+		updateSelf( $("c").getContext("2d") );
+		
+		this.w = this.image.width;
+		this.h = this.image.height;
+		this.w2 = this.w/2;
+		this.h2 = this.h/2;
+	},
+	
+	updateSelf: function(canvas){
+		if(this.frame < this.frames){
+			canvas.save();
+			canvas.translate(this.x,this.y);
+			canvas.drawImage(this.image, -this.w2, -this.h2, this.w,this.h);
+			canvas.restore();
+			this.frame++;
+			this.updateSelf(canvas);
+		}
+	}
+}
