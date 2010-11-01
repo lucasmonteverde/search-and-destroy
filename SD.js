@@ -69,8 +69,8 @@
 		preloader = new Preloader(
 			{
 				mapa:			'images/mapa1.png',
-				player1:		'images/player1_1.png',
-				player2:		'images/player2_1.png',
+				player1:		'images/player1.png',
+				player2:		'images/player2.png',
 				soldier1:		'images/soldier01.png',
 				soldier1_fire:	'images/soldier01_fire.png',
 				soldier2:		'images/soldier02.png',

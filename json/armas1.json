@@ -1,0 +1,9 @@
+	armas = {
+		"nome": "AK 47",
+		"img": "blueBullet",
+		"audio": "ak47",
+		"vel": 11,
+		"forca": 35,
+		"balas": 30,
+		"maxBalas": 30 
+	}
