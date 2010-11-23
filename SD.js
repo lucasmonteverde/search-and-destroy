@@ -24,21 +24,24 @@
 			mouseX = 800, mouseY = 100, newMouse = [0,0],
 			moveX = 0, moveY = 0, spaceX = 0, spaceY = 0,
 			mClick = false, keyOn = [],
-			canvas ={}, gui , cenario, player, inimigos = [],inimigosL=0,inimigosMortos=0,mapSize = [];
+			canvas = {}, gui, cenario, player, inimigos = [],inimigosL=0,inimigosMortos=0,mapSize = [],
+			screenSize = (window.innerHeight - 600) /2;
 			
-			
-		var screenSize = (window.innerHeight - 600) /2;
 		d.body.style.marginTop = screenSize > 0? screenSize + "px":0;
 		
-		var audio = [4];
-		var lastA = 0;
-		var format = navigator.userAgent.indexOf("Chrome") > 0 ? '.mp3': '.wav';
+		var audio = [4], lastA = 0, format = navigator.userAgent.indexOf("Chrome") > 0 ? '.mp3': '.wav';
+		
+		var numberOfSplatterParticles = 12;
+		var splatterDistance = 65;
+		var splatterIntensity = 75; //1 to 100
+		var splatterSize = 160; //1 to 500
 		
 		var init = function(){
 			log('Start');
 			
 			canvas = $("c").getContext("2d");
 			gui = $("gui").getContext("2d");
+			//canvasMap = $("m").getContext("2d");
 			fpsCounter = $("fps");
 			msg = $('message');
 			
@@ -63,22 +66,15 @@
 			};
 		};
 		
-		
-
-		
 		preloader = new Preloader(
 			{
 				mapa:			'images/mapa1.png',
 				player1:		'images/player1.png',
 				player2:		'images/player2.png',
-				soldier1:		'images/soldier01.png',
-				soldier1_fire:	'images/soldier01_fire.png',
-				soldier2:		'images/soldier02.png',
-				soldier2_fire:	'images/soldier02_fire.png',
-				dead: 			'images/dead.png',
 				greenBullet:	'images/bullets/green-round.png',
 				blueBullet:		'images/bullets/blue-round.png',
-				purpleBullet:	'images/bullets/purple-round.png'
+				purpleBullet:	'images/bullets/purple-round.png',
+				blood:			'images/blood.png'
 			},
 			{
 				ak47:	'audio/ak47'+ format,
@@ -109,7 +105,7 @@
 		//var gui = $("gui").getContext("2d");
 		
 		var updateObjects = function(){
-			//canvas.clearRect(newMouse[0],newMouse[1],816,616);
+			canvas.clearRect(newMouse[0],newMouse[1],816,616);
 			
 			/* gui.save();
 			gui.clearRect(0,540,800,60);
@@ -153,7 +149,7 @@
 			}
 			
 			
-			cenario.drawSelf(canvas,newX,newY);
+			cenario.drawSelf(canvas,newX,newY,newMouse);
 			
 			for(var i = 0; i < inimigosL; i++){
 				inimigos[i].drawSelf(canvas);
@@ -166,46 +162,12 @@
 		},
 		
 		updateBullets = function(){
-		
-			/* for(var b = 0, bullets = player.bullets; b< bullets.length;b++){
-				var bl = player.bullets[b];
-				if( cenario.checkTile(bl.x, bl.y) && bl.getAlcance()){
-					for(var en = 0;en<inimigosL; en++){
-						if(inimigos[en].hitTest(bl.x,bl.y)){
-							if(inimigos[en].hitTest(bl.x,bl.y) && !inimigos[en].morto){
-								inimigos[en].hitBy(bl.forcaImpacto);
-								inimigos[en].baleado();
-								if(inimigos[en].morto)inimigosMortos++;
-								bullets.splice(b,1);
-							}
-						}
-					}
-					bl.drawSelf(canvas);
-				}else bullets.splice(b,1);
-			} */
-
-			//Handle enemies
-			/* for(var i = 0; i < inimigosL; i++){
-				var en = inimigos[i];
-				en.drawSelf(canvas);
-				for(var b = 0,enBullets = en.bullets; b < enBullets.length; b++){
-					var bl = en.bullets[b];
-					if( cenario.checkTile(bl.x, bl.y) && bl.getAlcance()){
-						if(player.hitTest(bl.x,bl.y)){
-							player.hitBy(bl.forcaImpacto);
-							enBullets.splice(b,1);
-							continue;
-						}
-						bl.drawSelf(canvas);
-					}else enBullets.splice(b,1);
-				}
-			} */
-			
 
 			for(var b = 0; b< bullets.length;b++){
 				var bl = bullets[b];
 				if( cenario.checkTile(bl.x, bl.y) && bl.getAlcance()){
 					if(player.hitTest(bl.x,bl.y)){
+						//drawBlood(bl.x, bl.y,  numberOfSplatterParticles, splatterDistance, splatterIntensity, splatterSize);
 						player.hitBy(bl.forcaImpacto);
 						bullets.splice(b,1);
 						continue;
@@ -224,14 +186,30 @@
 					bl.drawSelf(canvas);
 				}else bullets.splice(b,1);
 			}
-		}
+		},
+		
+		drawBlood = function(tX, tY, numParticles, distance, splatterIntensity, splatterSize){
+			var img = preloader.getResource("blood");
+				for(var i = 0; i < numParticles; i++)
+				{
+					//set splatter position
+					var newX = tX+ (Math.random() * distance)-(distance/2);
+					var newY = tY+ (Math.random() * distance)-(distance/2);
+
+					//internal_holder._xscale = random(_splatterSize)+_splatterSize/4;
+					//internal_holder._xscale = random(_splatterSize)+_splatterSize/4;
+					//internal_holder._rotation = random(359);
+					//internal_holder._alpha = random(_splatterIntensity)+_splatterIntensity/4
+					canvasMap.drawImage(img, newX, newY);
+				}
+		},
 		
 		setMessage = function(message, set){
 			msg.innerHTML = message;
 			msg.style.top = (window.innerHeight - 18) / 2 + "px";
 			msg.style.left = (window.innerWidth - msg.offsetWidth) / 2 + "px";
 			msg.set = set;
-		}
+		},
 
 		updateScreen = function(){
 			if(player.morto)
@@ -290,7 +268,7 @@
 			$('message').innerHTML = '';
 			clearInterval(interval);
 			init();
-		}
+		},
 		
 		checkKeys = function() {
 			var velocity = (keyOn[16]) ? 8 + 20 : 8; // shift

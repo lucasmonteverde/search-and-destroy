@@ -55,13 +55,10 @@ Personagem = Class.create({
 		this.frame = [];
 		if(type == "Ally"){
 			this.image = preloader.getResource('player1');
-			//this.frame[1] = preloader.getResource('soldier1_fire');
 			
 		}else{
 			this.image = preloader.getResource('player2');
-			//this.frame[1] = preloader.getResource('soldier2_fire');
 		}
-		//this.frame[2] = preloader.getResource('dead');
 		this.w = 100;
 		this.h = 100;
 		this.w2 = this.w/2;
@@ -150,7 +147,6 @@ Personagem = Class.create({
 	},
 	fire: function(arm){
 		SoundManager(arm.audio);
-		//preloader.getResource(arm.audio).play();
 		return new Bullet(this.x ,this.y,this.rotate, arm.vel , arm.forca, arm.img);
 	},
 	updatePanel: function(b){
